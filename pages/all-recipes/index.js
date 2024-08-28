@@ -62,8 +62,8 @@ const AllRecipesPage = ({ recipesResponse, currentPage, search }) => {
           <div className="ml-0 w-auto lg:ml-10 lg:w-3/4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {recipesResponse &&
-              recipesResponse.data &&
-              recipesResponse.data.length > 0 ? (
+                recipesResponse.data &&
+                recipesResponse.data.length > 0 ? (
                 recipesResponse.data.map((recipe) => (
                   <div key={recipe._id}>
                     <CardRecipe
@@ -75,7 +75,7 @@ const AllRecipesPage = ({ recipesResponse, currentPage, search }) => {
                 ))
               ) : (
                 <p className="mt-12">
-                  No se encontraron recetas para la búsqueda "{search}".
+                  No se encontraron recetas para la búsqueda <span className="text-chefAtHome-Orange-600 font-semibold">{search}</span>.
                 </p>
               )}
             </div>
