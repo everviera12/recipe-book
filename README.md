@@ -1,40 +1,133 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+import { Montserrat } from "next/font/google";
+const montserrat = Montserrat({ subsets: ["latin"] });
+import Image from "next/image";
+import { useState } from "react";
+import Link from "next/link";
 
-## Getting Started
+// assets
+import { lupa } from "@/public";
 
-First, run the development server:
+export async function getServerSideProps() {
+  const url = "https://www.recipesapi.online/v1/api/recipes";
+  const recipesData = await fetch(url);
+  const recipesResponse = await recipesData.json();
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+  return {
+    props: {
+      recipesResponse: recipesResponse ? recipesResponse : null,
+    },
+  };
+}
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+const AllRecipesPage = ({ recipesResponse }) => {
+  console.log(recipesResponse);
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+  const [expandedRecipeId, setExpandedRecipeId] = useState(null);
+  const maxLength = 150;
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+  const truncateText = (text, maxLength) => {
+    if (text.length <= maxLength) return text;
+    return text.slice(0, maxLength) + "...";
+  };
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+  const handleReadMore = (id) => {
+    setExpandedRecipeId(expandedRecipeId === id ? null : id);
+  };
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+  return (
+    <div className={`grid justify-center ${montserrat.className}`}>
+      <div className="flex">
 
-## Learn More
+        {/* Sidebar */}
+        <aside className="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full sm:translate-x-0 bg-chefAtHome-Beige-50 border-r border-chefAtHome-Orange-200">
+          <div className="h-full px-4 py-6 overflow-y-auto">
+            {/* Formulario de Búsqueda */}
+            <form className="mb-6">
+              <div className="relative">
+                <Image
+                  className="absolute inset-y-4 left-2 flex items-center pointer-events-none"
+                  src={lupa}
+                  alt="lupa-icon"
+                  width={20}
+                  height={30}
+                />
+                <input
+                  type="search"
+                  className="block w-full p-4 pl-8 text-sm text-chefAtHome-Orange-900 border border-chefAtHome-Orange-300 rounded-lg bg-chefAtHome-Orange-100 focus:ring-chefAtHome-Orange-500 focus:border-chefAtHome-Orange-500 focus:outline-none"
+                  placeholder="Search recipes..."
+                />
+                <button
+                  type="submit"
+                  className="text-white absolute right-1 bottom-3 bg-chefAtHome-Orange-600 hover:bg-chefAtHome-Orange-700 focus:outline-none focus:ring-chefAtHome-Orange-300 font-medium rounded-lg text-sm px-2 py-1 transition-all"
+                >
+                  Search
+                </button>
+              </div>
+            </form>
+          </div>
+        </aside>
 
-To learn more about Next.js, take a look at the following resources:
+        {/* Main Content */}
+        <div className="p-4 sm:ml-64 w-full">
+          <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {recipesResponse?.data?.map((recipe) => {
+              const isExpanded = recipe._id === expandedRecipeId;
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+              return (
+                <div
+                  className="bg-chefAtHome-Orange-100 border border-chefAtHome-Orange-200 rounded-lg flex flex-col justify-between min-w-[250px] max-w-[350px] min-h-[400px] p-4"
+                  key={recipe._id}
+                >
+                  <div>
+                    <Link href="/" className="grid justify-center w-full">
+                      <Image
+                        width={300}
+                        height={250}
+                        className="rounded-lg w-full flex justify-center lg:w-auto"
+                        src={recipe.image}
+                        alt={recipe.name}
+                      />
+                      <div className="py-3 text-center">
+                        <h3 className="uppercase font-medium text-xl text-chefAtHome-Orange-600">
+                          {recipe.name}
+                        </h3>
+                      </div>
+                    </Link>
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+                    <div className="flex flex-col items-center">
+                      <div className="pb-3">
+                        <p className="text-sm font-normal">
+                          {isExpanded
+                            ? recipe.description
+                            : truncateText(recipe.description, maxLength)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
 
-## Deploy on Vercel
+                  <div className="flex mt-5 justify-between gap-3">
+                    <button
+                      className="text-chefAtHome-Orange-600 text-sm font-medium"
+                      onClick={() => handleReadMore(recipe._id)}
+                    >
+                      {isExpanded ? "Leer menos" : "Leer más"}
+                    </button>
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+                    <Link
+                      href={"/"}
+                      className="text-chefAtHome-Orange-100 bg-orange-400 px-2 py-1 rounded text-sm font-medium hover:bg-chefAtHome-Orange-400 hover:text-chefAtHome-Orange-800 transition-all"
+                    >
+                      Ver receta
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+};
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+export default AllRecipesPage;
